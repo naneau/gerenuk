@@ -48,8 +48,6 @@ You can pass this configuration to Gerenuk's Container
 
 One of the more challenging aspects of working with node is asynchronous instantiation of resources. You may, for example, need to connect to a database before you can perform other operations. Gerenuk attempts to aid you with this by supporting asynchronously resolvable services.
 
-Sometimes, you need to call a function on an object, to get a service, for instance to connect to a database `instanceCall` lets you do this.
-
 ## Examples
 
 When config is a string, the DIC will act like nothing more than wrapper around require()

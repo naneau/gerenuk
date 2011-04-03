@@ -11,14 +11,14 @@
     Async.prototype.connect = function(callback) {
       var fn;
       fn = function() {
-        return callback(true, 'foo');
+        return callback(false, 'foo');
       };
       return setTimeout(fn, 1);
     };
     Async.prototype.failingConnect = function(callback) {
       var fn;
       fn = function() {
-        return callback(false);
+        return callback(true);
       };
       return setTimeout(fn, 1);
     };

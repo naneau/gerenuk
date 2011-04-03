@@ -63,6 +63,7 @@ class Container
 
     # Get with stack
     getWithStack: (id, stack, callback) ->
+        
         # Guard for circular dependencies
         throw new Error "Circular dependency for #{id}" if (service for service in stack when service is id).length > 0
         
@@ -82,18 +83,18 @@ class Container
         # Require the package
         required = @require id
             
-        # No callback or instantiation, call the callback with the required package
-        return callback required if not diConfig.call? and not diConfig.instantiate? and not diConfig.inject?
+        # No instantiation call the callback with the required package
+        return callback required if not (key for key of diConfig when key in ['call', 'instantiate', 'inject', 'callback']).length > 0
         
         # No injection to resolve, that's the easy case :x
         if not diConfig.inject?
             instantiated = @instantiate required, diConfig 
             
             # No instance calls to do
-            return callback instantiated if not diConfig.instanceCall?
-            
-            # Do a call on the instance to retrieve the actual service
-            @doCallback instantiated, diConfig.instanceCall, (service) ->
+            return callback instantiated if not diConfig.callback?
+
+            # Call the callback to retrieve the actual service
+            diConfig.callback instantiated, (service) ->
                 callback service
                 
         else 
