@@ -88,16 +88,20 @@ class Container extends EventEmitter
             
         # No instantiation, so call the callback with the required package
         return callback required if (key for key of diConfig when key in ['call', 'instantiate', 'inject', 'callback']).length is 0
-
-        # No injection to resolve, that's the easy case :x
-        return @handleAsync (@instantiate required, diConfig), diConfig, callback if not diConfig.inject?
+        
+        # We're already waiting on this service to become available...
+        if @resolving[id]?
+            @on "resolved.#{id}", (service) -> @handleAsync id, service, diConfig, callback
+        else
+            # No injection to resolve, that's the easy case :x
+            return @handleAsync id, (@instantiate required, diConfig), diConfig, callback if not diConfig.inject?
             
-        # Injection have to be resolved
-        @resolveInjection diConfig.inject, stack, (services...) =>
-            @handleAsync (@instantiate required, diConfig, services...), diConfig, callback
+            # Injection have to be resolved
+            @resolveInjection diConfig.inject, stack, (services...) =>
+                @handleAsync id, (@instantiate required, diConfig, services...), diConfig, callback
                     
-        # Callback based func, no result
-        undefined
+            # Callback based func, no result
+            undefined
 
     # Get a list of dependencies, will `@getWithStack` all items, in order and serially
     resolveInjection: (items, stack, parentCallback) ->
@@ -138,7 +142,10 @@ class Container extends EventEmitter
         return new what resolvedServices...
 
     # Handle any async actions *after* intanstiation
-    handleAsync: (service, diConfig, parentCallback) ->
+    handleAsync: (id, service, diConfig, parentCallback) ->
+        # We're no longer resolving
+        delete @resolving[id]
+        
         # No instance calls to do
         return parentCallback service if not diConfig.callback?
 
