@@ -8,7 +8,7 @@ module.exports =
     
     # Sometimes, you need to call a function on an object, to get a service, for instance to connect to a database
     # instanceCall lets you do this
-    withCallback:
+    withInstanceCall:
         require: 'test/lib/testAsync'
         instantiate: true
         
@@ -21,6 +21,6 @@ module.exports =
                 someService
                 
     # You can inject a callback-based service into a regular service
-    injectedCallback:
+    injectedInstanceCall:
         require: 'test/lib/testPackage'
-        inject: ['withCallback']
+        inject: ['withInstanceCall']

@@ -27,7 +27,7 @@ module.exports = testCase
     'Callbacks are called and return the service': (test) ->
         test.expect 1
         
-        @dic.get 'withCallback', (service) ->
+        @dic.get 'withInstanceCall', (service) ->
             test.equal service, 'foo'
             do test.done
      
@@ -35,6 +35,6 @@ module.exports = testCase
     'Asynchronously instantiated services are injected into non-async services': (test) ->
         test.expect 1
 
-        @dic.get 'injectedCallback', (service) ->
+        @dic.get 'injectedInstanceCall', (service) ->
             test.equal service.services[0], 'foo'
             do test.done
