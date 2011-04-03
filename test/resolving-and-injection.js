@@ -5,7 +5,7 @@
   module.exports = testCase({
     setUp: function(callback) {
       var DIContainer;
-      DIContainer = require('../lib/di');
+      DIContainer = (require('../lib/di')).Container;
       this.dic = new DIContainer(require('test/config/test'));
       return callback();
     },

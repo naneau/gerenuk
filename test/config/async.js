@@ -1,7 +1,7 @@
 (function() {
   module.exports = {
     byPackageName: 'test/lib/testPackage',
-    withCallback: {
+    withInstanceCall: {
       require: 'test/lib/testAsync',
       instantiate: true,
       instanceCall: {
@@ -14,9 +14,9 @@
         }
       }
     },
-    injectedCallback: {
+    injectedInstanceCall: {
       require: 'test/lib/testPackage',
-      inject: ['withCallback']
+      inject: ['withInstanceCall']
     }
   };
 }).call(this);
