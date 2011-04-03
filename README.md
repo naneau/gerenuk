@@ -4,14 +4,18 @@
 
 Gerenuk - named after the animal - is a [Dependency Injection Container](http://en.wikipedia.org/wiki/Dependency_injection) for node.js. It targets [CoffeeScript](http://coffeescript.org), but should work for regular javascript code as well.
 
+Gerenuk attempts to work around various problems that arise when working with asynchronous code. Its main goal is to facilitate easy application set up and independence of various parts of your code, in accordance with [Demeter's law](http://en.wikipedia.org/wiki/Law_of_Demeter#In_object-oriented_programming).
+
 ## Usage
 
-The container is initialized with a config. In this config you can add nodes for every service you'd like to have. It's also possible to add children to nodes, and even to use the config for a node from a different file. You reference every service by its position in the config, like "foo", and "foo.bar.baz".
+Gerenuk is a Dependency Injection Container (DIC) that can hold various "services". You can retrieve a service from Gerenuk through the `get` method. Every service has a unique identifier, which is passed to `get`.
+
+The container is initialized with a config. The config is a Javascript hash. In this config you can add nodes for every service you'd like to have. It's also possible to add children to nodes, and even to load a config for a node from a config file. The ids for the services are their positions in the config hash, like "foo", and "foo.bar.baz".
 
     # Sample config
     config = 
     
-        # Simple service with two params
+        # Simple service ("foo") with two params, and a child within a child ("foo.bar.baz")
         foo: 
             require: 'fooPackage'
             params:
@@ -19,7 +23,13 @@ The container is initialized with a config. In this config you can add nodes for
                 param2: 'param two'
             
             inject ['foo.param1', 'foo.param2']
-        
+            
+            # Children of foo
+            children:
+                bar:
+                    children:
+                        baz: 'bazPackage'
+                        
         # Create an instance of barPackage's Bar and pass the foo service to the constructor
         # This is like new (require 'barPackage').Bar foo
         bar:
@@ -33,13 +43,15 @@ The container is initialized with a config. In this config you can add nodes for
             inject: ['foo', 'bar']
             call: 'bazFunction'
 
-You can pass this configuration to Gerenuk's Container.
+You can pass this configuration to Gerenuk's Container:
     
     # DI Container
     Container = (require 'gerenuk').Container
             
     # Container
     dic = new Container config 
+
+Using this container you can resolve services:
 
     # Callback gets called with the resolved/injected service
     dic.get 'foo', (service) -> ...
