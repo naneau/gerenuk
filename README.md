@@ -60,6 +60,8 @@ In the example of the database connection, you might do the following
                     throw "Error!" if error
                     callback connection
 
+Gerenuk keeps a copy of every 
+
 ## Examples
 
 When config is a string, the DIC will act like nothing more than wrapper around require()
