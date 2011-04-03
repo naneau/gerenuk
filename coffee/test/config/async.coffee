@@ -12,3 +12,14 @@ module.exports =
             async.connect (error, someVal) ->
                 throw "Error!" if error
                 callback someVal
+        
+    withSlowCallback:
+        require: 'test/lib/testAsync'
+        
+        # Callback on the instance 
+        callback: (async, callback) ->
+            
+            fn = () -> callback do Math.random
+            setTimeout fn, 100
+                
+        

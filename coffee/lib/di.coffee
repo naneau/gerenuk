@@ -91,8 +91,12 @@ class Container extends EventEmitter
         
         # We're already waiting on this service to become available...
         if @resolving[id]?
-            @on "resolved.#{id}", (service) -> @handleAsync id, service, diConfig, callback
+            @on "async.#{id}", (service) ->
+                callback service
         else
+            # We're resolving now
+            @resolving[id] = true
+            
             # No injection to resolve, that's the easy case :x
             return @handleAsync id, (@instantiate required, diConfig), diConfig, callback if not diConfig.inject?
             
@@ -143,14 +147,20 @@ class Container extends EventEmitter
 
     # Handle any async actions *after* intanstiation
     handleAsync: (id, service, diConfig, parentCallback) ->
-        # We're no longer resolving
-        delete @resolving[id]
         
+        # Complete the async stuff, time to finally bubble upwards
+        complete = (service) =>
+            # Notify others who may be waiting for this service
+            @emit "async.#{id}", service
+            delete @resolving[id]
+            
+            parentCallback service
+            
         # No instance calls to do
-        return parentCallback service if not diConfig.callback?
+        return complete service if not diConfig.callback?
 
         # Call the callback to retrieve the actual service
-        diConfig.callback service, (service) -> parentCallback service
+        diConfig.callback service, (service) -> complete service
         
     # Resolve an id to the relevant type, note it can resolve to undefined
     getDiConfig: (id) ->

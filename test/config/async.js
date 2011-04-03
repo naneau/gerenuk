@@ -10,6 +10,16 @@
           return callback(someVal);
         });
       }
+    },
+    withSlowCallback: {
+      require: 'test/lib/testAsync',
+      callback: function(async, callback) {
+        var fn;
+        fn = function() {
+          return callback(Math.random());
+        };
+        return setTimeout(fn, 100);
+      }
     }
   };
 }).call(this);

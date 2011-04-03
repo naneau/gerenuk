@@ -30,3 +30,18 @@ module.exports = testCase
         @dic.get 'withCallback', (service) ->
             test.equal service, 'foo'
             do test.done
+            
+    'When calling a service with a slow instantiation twice we get the same object': (test) ->
+        test.expect 1
+        resolved = null
+        check = (service) ->
+            console.log service
+            if resolved
+                test.equal service, resolved
+                do test.done
+            else
+                resolved = service
+                
+        # Fire twice
+        @dic.get 'withSlowCallback', check
+        @dic.get 'withSlowCallback', check
