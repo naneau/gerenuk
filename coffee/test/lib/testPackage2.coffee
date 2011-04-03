@@ -2,9 +2,6 @@
 class Test
     constructor: (@args...) ->
         @foo = 'baz'
-
-        #console.log 'Test instantiated'
-        #console.log @args
         
 # Export hash
 module.exports = 

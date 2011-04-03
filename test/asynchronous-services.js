@@ -21,7 +21,6 @@
       test.expect(1);
       resolved = null;
       check = function(service) {
-        console.log(service);
         if (resolved) {
           test.equal(service, resolved);
           return test.done();

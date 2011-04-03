@@ -35,7 +35,6 @@ module.exports = testCase
         test.expect 1
         resolved = null
         check = (service) ->
-            console.log service
             if resolved
                 test.equal service, resolved
                 do test.done
