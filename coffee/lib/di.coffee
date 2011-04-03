@@ -1,5 +1,8 @@
+# We emit some events to facilitate asynchronous resolving
+EventEmitter = (require 'events').EventEmitter
+
 # DI Container
-class Container
+class Container extends EventEmitter
     
     # Constructor, pass root config
     constructor: (config) -> 
