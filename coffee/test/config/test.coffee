@@ -85,3 +85,11 @@ module.exports =
         require: 'test/lib/testPackage2'
         inject: ['byPackageName', 'useConfig']
         call: 'testFunction'
+    
+    # Neat little circle... this won't work
+    circularInjection1:
+        require: 'test/lib/testPackage2'
+        inject: ['circularInjection2']
+    circularInjection2:
+        require: 'test/lib/testPackage2'
+        inject: ['circularInjection1']

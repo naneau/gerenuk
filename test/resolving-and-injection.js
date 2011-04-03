@@ -1,5 +1,6 @@
 (function() {
   var testCase;
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   testCase = (require('nodeunit')).testCase;
   require.paths.unshift('./');
   module.exports = testCase({
@@ -118,6 +119,13 @@
         test.deepEqual(service, new (require('test/lib/testPackage')));
         return test.done();
       });
+    },
+    "Circular dependencies throw an exception": function(test) {
+      test.expect(1);
+      test.throws(__bind(function() {
+        return this.dic.get('circularInjection1', function(service) {});
+      }, this));
+      return test.done();
     }
   });
 }).call(this);

@@ -72,6 +72,14 @@
       require: 'test/lib/testPackage2',
       inject: ['byPackageName', 'useConfig'],
       call: 'testFunction'
+    },
+    circularInjection1: {
+      require: 'test/lib/testPackage2',
+      inject: ['circularInjection2']
+    },
+    circularInjection2: {
+      require: 'test/lib/testPackage2',
+      inject: ['circularInjection1']
     }
   };
 }).call(this);

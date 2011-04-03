@@ -150,3 +150,10 @@ module.exports = testCase
             test.deepEqual service, new (require 'test/lib/testPackage')
 
             do test.done
+
+    # Circular dependencies
+    "Circular dependencies throw an exception": (test) ->
+        test.expect 1
+        test.throws () =>
+            @dic.get 'circularInjection1', (service) ->
+        do test.done
