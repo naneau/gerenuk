@@ -16,7 +16,7 @@ module.exports = testCase
     # Set up DIC with the config
     setUp: (callback) ->
         # require
-        DIContainer = require '../lib/di'
+        DIContainer = (require '../lib/di').Container
         
         # Instantiate the DIC with our config
         @dic = new DIContainer require 'test/config/test'

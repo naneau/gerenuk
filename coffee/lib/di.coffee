@@ -201,4 +201,4 @@ class Container
             @required[id] = required
 
 # Export
-module.exports = Container
+module.exports = {Container}
