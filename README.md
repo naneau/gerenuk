@@ -67,18 +67,18 @@ Gerenuk keeps track of services it's currently waiting on. This means that when 
 When config is a string, the DIC will act like nothing more than wrapper around require()
 
     config =
-        byPackageName: 'fooPackage'
+        foo: 'fooPackage'
     
 Same as before, but more explicit
 
     config =
-        withRequire:
+        foo:
             require: 'fooPackage'
         
 With `instantiate: true` the container will create a new object directly from the results of the require, which is handy when you have a package directly exporting a single class: `module.exports = SomeClass`.
 
     config =
-        withInstantiate:
+        fooInstance:
             require: 'fooPackage'
             instantiate: true
     
@@ -86,58 +86,60 @@ When you only want to instantiate a part of the `module.exports` hash, you can n
 
     # In fooPackage
     module.exports = 
-        foo: SomeClass
-        bar: SomeOtherClass
+        foo: FooClass
+        bar: BarClass
         
     # In DIC config
     config =
-        withNamedInstantiate:
+        bar:
             require: 'fooPackage'
             instantiate: 'bar'
     
-The container starts to become useful as soon as you start to inject services into other services. You can use `inject` to create an array of services passed to the constructor.
+The container starts to become useful as soon as you start to inject services into other services. You can use `inject` to set up an array of services passed to the constructor.
 
     config = 
-        withInject:
+        foo:
             require: 'fooPackage'
-            inject: ['withInstantiate']
+            inject: ['bar']
 
 You can set params, which you can reference by their name, just like a service. You can combine this with loading a configuration file. You can mix and match params and services in the `inject` array, but params get preference over services.
 
     config =
-        withParams:
+        foo:
             require: 'fooPackage'
             params:
                 param1: 'foo'
                 param2: 'bar'
-            inject: ['withParams.param1', 'withParams.param2']
+            inject: ['foo.param1', 'foo.param2']
         
 Services can have children, in this case the id of the child is `withChildren.someChild.twoDeep`.
 
     config =
-        withChildren:
+        foo:
             children:
-                someChild:
-                    # `withChildren.someChild` works as a regular service, as well as parent for twoDeep
-                    require: 'fooPackage'
-                    instantiate: 'bar'
+                bar:
+                    # `foo.bar` works as a regular service, as well as parent for `foo.bar.baz`
+                    require: 'barPackage'
+                    instantiate: true
                 
                     children:
-                        twoDeep:
-                            require: 'barPackage'
+                        baz:
+                            require: 'bazPackage'
                             instantiate: true
     
 It is possible to spread your DI config over multiple files. You can require a package and use as a config for a service.
 
     config =    
-        useConfig:
+        foo:
             loadConfig: 'fooConfig'
     
-        # Children can load configs just as their parents can
-        useConfigInChild:
+Children can load configs just as their parents can
+
+    config =
+        foo:
             children:
-                configChild:
-                    loadConfig: 'test/config/included'
+                bar:
+                    loadConfig: 'barConfig'
                 
 When you don't want to instantiate, but rather call a method from a required package, you can use `call`. The function named in `call` is assumed to return the service.
 
@@ -146,12 +148,12 @@ When you don't want to instantiate, but rather call a method from a required pac
             require: 'barPackage'
             call: 'barFunction'
     
-Call can also inject:
+Call can also inject, so the following would work like `(require 'fooPackage').someFunction bar, baz`, where foo and baz are resolved services, which can themselves have dependencies, etc.:
 
     config =    
-        # (require 'barPackage').someFunction foo, bar
-        bar:
-            require: 'barPackage'
-            inject: ['foo', 'baz']
-            call: 'barFunction'
+        # 
+        foo:
+            require: 'fooPackage'
+            inject: ['bar', 'baz']
+            call: 'fooFunction'
 
