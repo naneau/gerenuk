@@ -65,86 +65,71 @@ In the example of the database connection, you might do the following
 When config is a string, the DIC will act like nothing more than wrapper around require()
 
     config =
-        byPackageName: 'test/lib/testPackage'
+        byPackageName: 'fooPackage'
     
 Same as before, but more explicit
 
     config =
         withRequire:
-            require: 'test/lib/testPackage'
+            require: 'fooPackage'
         
-With instantiate
+With `instantiate: true` the container will create a new object directly from the results of the require, which is handy when you have a package directly exporting a single class: `module.exports = SomeClass`.
 
     config =
         withInstantiate:
-            require: 'test/lib/testPackage'
+            require: 'fooPackage'
             instantiate: true
     
-Passing inject, will do `new (require 'test/lib/testPackage2').test1`
+When you only want to instantiate a part of the `module.exports` hash, you can name it in instantiate, in this case `bar`:
 
+    # In fooPackage
+    module.exports = 
+        foo: SomeClass
+        bar: SomeOtherClass
+        
+    # In DIC config
     config =
         withNamedInstantiate:
-            require: 'test/lib/testPackage2'
-            instantiate: 'test1'
+            require: 'fooPackage'
+            instantiate: 'bar'
     
-Require a package like the before, but pass other services, this implicitly assumes instantiation, like: `new (require 'somePackage') injectedService1, injectedService2`
+The container starts to become useful as soon as you start to inject services into other services. You can use `inject` to create an array of services passed to the constructor.
 
     config = 
         withInject:
-            require: 'test/lib/testPackage'
+            require: 'fooPackage'
             inject: ['withInstantiate']
 
-You can set params, which you can reference by their name, just like a service. You can use `withParams.param1` from everywhere, just like a service.
+You can set params, which you can reference by their name, just like a service. You can combine this with loading a configuration file. You can mix and match params and services in the `inject` array, but params get preference over services.
 
     config =
         withParams:
-            require: 'test/lib/testPackage'
+            require: 'fooPackage'
             params:
                 param1: 'foo'
                 param2: 'bar'
             inject: ['withParams.param1', 'withParams.param2']
         
-You can mix and match params and services, but params get preference over services
-
-    config =
-        withParamsAndInject:
-            require: 'test/lib/testPackage'        
-            params:
-                param1: 'foo'
-                param2: 'bar'
-            inject: ['withParams.param1', 'withParams.param2', 'withInstantiate']
-    
-We can indent and have children, in this case the id is "withChildren.someChild.twoDeep"
+Services can have children, in this case the id of the child is `withChildren.someChild.twoDeep`.
 
     config =
         withChildren:
             children:
                 someChild:
                     # `withChildren.someChild` works as a regular service, as well as parent for twoDeep
-                    require: 'test/lib/testPackage2'
-                    instantiate: 'test1'
+                    require: 'fooPackage'
+                    instantiate: 'bar'
                 
                     children:
                         twoDeep:
-                            require: 'test/lib/testPackage'
+                            require: 'barPackage'
                             instantiate: true
     
-            
-When a child and a param with the same name are set the DIC will pick the param over the child
-
-    config =    
-        # withParamAndChildWithSameName.test will resolve to 'foo'
-        withParamAndChildWithSameName:
-            children:
-                test: 'test/lib/testPackage2'
-            params:
-                test: 'foo'
-            
-Require a package, use as config for this item, the package will be used as the root of this item, and can reference any and all services
+It is possible to spread your DI config over multiple files. You can require a package and use as a config for a service.
 
     config =    
         useConfig:
-            loadConfig: 'test/config/included'
+            loadConfig: 'fooConfig'
     
         # Children can load configs just as their parents can
         useConfigInChild:
@@ -152,19 +137,19 @@ Require a package, use as config for this item, the package will be used as the 
                 configChild:
                     loadConfig: 'test/config/included'
                 
-Call will not instantiate, but rather call a function from the required package
+When you don't want to instantiate, but rather call a method from a required package, you can use `call`. The function named in `call` is assumed to return the service.
 
     config =    
-        withCall:
-            require: 'test/lib/testPackage2'
-            call: 'testFunction'
+        bar:
+            require: 'barPackage'
+            call: 'barFunction'
     
 Call can also inject:
 
     config =    
-        # (require 'test/lib/testPackage2').someFunction services...
-        withCallAndInject:
-            require: 'test/lib/testPackage2'
-            inject: ['byPackageName', 'useConfig']
-            call: 'testFunction'
+        # (require 'barPackage').someFunction foo, bar
+        bar:
+            require: 'barPackage'
+            inject: ['foo', 'baz']
+            call: 'barFunction'
 
