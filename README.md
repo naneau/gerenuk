@@ -8,23 +8,41 @@ Gerenuk - named after the animal - is a [Dependency Injection Container](http://
 
 The container is initialized with a config:
 
-    Container = require 'gerenuk'
-    
     # Sample config
     config = 
-        # When config is a string, the DIC is nothing more than wrapper around require()
-        byPackageName: 'test/lib/testPackage'
-        
-        # Require a package like the before, but pass other services, this implicitly assumes instantiation
-        # Like: new (require 'somePackage') injectedService1, injectedService2, ...
-        withInject:
-            require: 'test/lib/testPackage'
-            inject: ['byPackageName']
     
+        # Simple service with two params
+        foo: 
+            require: 'fooPackage'
+            params:
+                param1: 'param one'
+                param2: 'param two'
+            
+            inject ['foo.param1', 'foo.param2']
+        
+        # Create an instance of barPackage's Bar and pass the foo service to the constructor
+        # This is like new (require 'barPackage').Bar foo
+        bar:
+            require: 'barPackage'
+            instantiate: 'Bar'
+            inject: ['byPackageName']
+        
+        # Instead of creating an instance the `bazFunction` will be called on bazPackage with `foo` and `bar` as params
+        baz:
+            require: 'bazPackage'
+            inject: ['foo', 'bar']
+            call: 'bazFunction'
+
+You can pass this configuration to Gerenuk's Container
+    
+    # DI Container
+    Container = (require 'gerenuk').Container
+            
     # Container
     dic = new Container config 
 
-    dic.get 'withInject', (service) -> ...
+    # Callback gets called with the resolved/injected service
+    dic.get 'foo', (service) -> ...
 
 ## Examples
 
