@@ -9,11 +9,14 @@
     "type": "git",
     "url":  "git://github.com/naneau/gerenuk.git"
   },
-
+  "directories" : {
+      "lib" : "./lib"
+    },
+  "main" : "./lib/di",
   "engines": {
-    "node": "~0.4.3"
+    "node": ">=0.4.2"
   },
-  "dependencies": {
+  "devDependencies": {
     "coffee-script": "~1.0.1"
   },
   "bin": {}
