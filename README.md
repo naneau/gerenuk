@@ -6,7 +6,7 @@ Gerenuk - named after the animal - is a [Dependency Injection Container](http://
 
 ## Usage
 
-The container is initialized with a config:
+The container is initialized with a config. In this config you can add nodes for every service you'd like to have. It's also possible to add children to nodes, and even to use the config for a node from a different file. You reference every service by its position in the config, like "foo", and "foo.bar.baz".
 
     # Sample config
     config = 
@@ -33,7 +33,7 @@ The container is initialized with a config:
             inject: ['foo', 'bar']
             call: 'bazFunction'
 
-You can pass this configuration to Gerenuk's Container
+You can pass this configuration to Gerenuk's Container.
     
     # DI Container
     Container = (require 'gerenuk').Container
@@ -54,13 +54,13 @@ In the example of the database connection, you might do the following
         connection: 
             require: 'dbPackage'
         
-            # Callback on the instance 
+            # Callback on the instance of dbPackage
             callback: (db, callback) ->
                 db.connect (error, connection) ->
                     throw "Error!" if error
                     callback connection
 
-Gerenuk keeps a copy of every 
+Gerenuk keeps track of services it's currently waiting on. This means that when asking for a service twice, before it's ready, will still give you the same object once for both injections.
 
 ## Examples
 
