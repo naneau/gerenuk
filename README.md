@@ -25,7 +25,7 @@ The container is initialized with a config. In this config you can add nodes for
         bar:
             require: 'barPackage'
             instantiate: 'Bar'
-            inject: ['byPackageName']
+            inject: ['foo']
         
         # Instead of creating an instance the `bazFunction` will be called on bazPackage with `foo` and `bar` as params
         baz:
