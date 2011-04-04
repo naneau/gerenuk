@@ -55,7 +55,7 @@ Using the container you can resolve services:
 
     dic.get 'foo', (service) -> ... your code ...
 
-## Putting You Configuration In Files
+## Putting Your Configuration Into Files
 
 When setting up your application, it is often useful to put your DI config into a configuration file (or files). Gerenuk supports this through the `loadConfig()` method. The config loaded through `loadConfig()` will be added to any existing configuration. It does *not* do a deep merge, however, and will throw an exception if you try to overwrite an existing config key.
 
