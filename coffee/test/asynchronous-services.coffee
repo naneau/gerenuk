@@ -30,7 +30,8 @@ module.exports = testCase
         @dic.get 'withCallback', (service) ->
             test.equal service, 'foo'
             do test.done
-            
+    
+    # Slow callbacks only resolve once
     'When calling a service with a slow instantiation twice we get the same object': (test) ->
         test.expect 1
         resolved = null
@@ -44,3 +45,13 @@ module.exports = testCase
         # Fire twice
         @dic.get 'withSlowCallback', check
         @dic.get 'withSlowCallback', check
+        
+    'Callbacks can have their own injection without instantiation': (test) ->
+        test.expect 3
+    
+        @dic.get 'withCallbackInjection', (service) ->
+            test.equal service.foo, 'foo'
+            test.equal service.bar, 'bar'
+            test.equal service.baz, 'baz'                        
+            do test.done
+    

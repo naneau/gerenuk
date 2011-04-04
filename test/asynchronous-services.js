@@ -30,6 +30,15 @@
       };
       this.dic.get('withSlowCallback', check);
       return this.dic.get('withSlowCallback', check);
+    },
+    'Callbacks can have their own injection without instantiation': function(test) {
+      test.expect(3);
+      return this.dic.get('withCallbackInjection', function(service) {
+        test.equal(service.foo, 'foo');
+        test.equal(service.bar, 'bar');
+        test.equal(service.baz, 'baz');
+        return test.done();
+      });
     }
   });
 }).call(this);

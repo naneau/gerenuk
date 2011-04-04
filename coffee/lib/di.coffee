@@ -89,26 +89,29 @@ class Container extends EventEmitter
         # Add the current id to the stack
         stack.push id
         
-        # Try to resolve as param, this takes preference over services/children
+        # Try to resolve as param, this takes preference over services/children and can be handled directly/synchronously
         resolvedAsParam = @resolveParam id
         return callback resolvedAsParam if resolvedAsParam?
         
         # Get the config for this item
         diConfig = @getDiConfig id
         
-        # If not, we have to require a package
+        # We may be have to inject directly into a callback, instead of requiring
+        return @getServiceThroughCallbackInjection id, stack, callback if diConfig.injectCallback?
+        
+        # If not, we do have to require a package
         required = @require id
             
         # No instantiation, so call the callback with the required package
         return callback required if (key for key of diConfig when key in ['call', 'instantiate', 'inject', 'callback']).length is 0
         
         # We're already waiting on this service to become available...
-        if @resolving[id]?
+        if @isResolving id
             @on "async.#{id}", (service) ->
                 callback service
         else
-            # We're resolving now
-            @resolving[id] = true
+            # Set resolving state
+            @setResolving id
             
             # No injection to resolve, that's the easy case :x
             return @handleAsync id, (@instantiate required, diConfig), diConfig, callback if not diConfig.inject?
@@ -146,7 +149,20 @@ class Container extends EventEmitter
         do next
     
         undefined
-
+        
+    # We would like to inject directly into a callback
+    getServiceThroughCallbackInjection: (id, stack, parentCallback) ->
+        # We're resolving now
+        @setResolving id
+        
+        diConfig = @getDiConfig id
+        
+        # Resolve the injection, then call the callback with it, passing a callback as the last param
+        @resolveInjection diConfig.injectCallback, stack, (services...) =>
+            diConfig.callback services..., (service) =>
+                @setResolved id, service
+                parentCallback service
+    
     # Instantiate from config and a resolved set of injected services
     instantiate: (what, diConfig, resolvedServices...) ->
         # If the instantiate is set to a string, we need to instantiate a specific part of the package
@@ -157,16 +173,30 @@ class Container extends EventEmitter
 
         # In all other cases, assume we want to instantiate the thing we required 
         return new what resolvedServices...
-
+    
+    # Set resolving state for a service
+    setResolving: (id) -> @resolving[id] = true
+    
+    # Are we resolving an item currently?
+    isResolving: (id) -> @resolving[id]?
+    
+    # Set resolved state for a service
+    setResolved: (id, service) ->
+        # Notify those who may be waiting for this service
+        @emit "async.#{id}", service
+        
+        # Remove the listeners so if we resolve it again handlers don't get called again
+        @removeAllListeners "async.#{id}"
+        
+        delete @resolving[id]
+        
     # Handle any async actions *after* intanstiation
     handleAsync: (id, service, diConfig, parentCallback) ->
-        
         # Complete the async stuff, time to finally bubble upwards
         complete = (service) =>
-            # Notify others who may be waiting for this service
-            @emit "async.#{id}", service
-            delete @resolving[id]
-            
+            # We've resolved the service
+            @setResolved id, service
+        
             parentCallback service
             
         # No instance calls to do

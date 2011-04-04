@@ -21,5 +21,18 @@ module.exports =
             
             fn = () -> callback do Math.random
             setTimeout fn, 100
+            
+    withCallbackInjection:
+        params: 
+            bar: 'bar',
+            baz: 'baz'
+        
+        # withCallback should be "foo"
+        injectCallback: ['withCallback', 'withCallbackInjection.bar', 'withCallbackInjection.baz']
+        
+        # Callback gets 3 params
+        callback: (foo, bar, baz, callback) ->
+            fn = () -> callback {foo, bar, baz}
+            process.nextTick fn
                 
         
