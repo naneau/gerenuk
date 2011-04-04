@@ -45,7 +45,10 @@ class Container extends EventEmitter
     parseConfigItem: (item) ->
         # Load configs
         item = require item.loadConfig if item.loadConfig
-
+        
+        # Make sure we don't have both inject and callbackInject
+        throw new Error "Can not have both `inject` and `callbackInject` in one config item" if item.inject? and item.callbackInject?
+        
         # Parse children recursively
         if item.children?
             for name, child of item.children

@@ -45,7 +45,8 @@ module.exports = testCase
         # Fire twice
         @dic.get 'withSlowCallback', check
         @dic.get 'withSlowCallback', check
-        
+    
+    # Callback injection
     'Callbacks can have their own injection without instantiation': (test) ->
         test.expect 3
     
@@ -55,3 +56,13 @@ module.exports = testCase
             test.equal service.baz, 'baz'                        
             do test.done
     
+    # Guard against both inject/callbackInject
+    'When both inject and callbackInject are set the container throws an exception': (test) ->
+        test.expect 1
+        test.throws () ->
+            dic = new DIContainer 
+                item:
+                    inject: []
+                    injectCallback: []
+        do test.done
+                

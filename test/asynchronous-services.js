@@ -39,6 +39,19 @@
         test.equal(service.baz, 'baz');
         return test.done();
       });
+    },
+    'When both inject and callbackInject are set the container throws an exception': function(test) {
+      test.expect(1);
+      test.throws(function() {
+        var dic;
+        return dic = new DIContainer({
+          item: {
+            inject: [],
+            injectCallback: []
+          }
+        });
+      });
+      return test.done();
     }
   });
 }).call(this);
