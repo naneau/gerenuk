@@ -37,7 +37,8 @@ The container is initialized with a config. The config is a Javascript hash. In 
             instantiate: 'Bar'
             inject: ['foo']
         
-        # Instead of creating an instance the `bazFunction` will be called on bazPackage with the `foo` and `bar` services as params
+        # Instead of creating an instance the `bazFunction` will be called on bazPackage
+        # `foo` and `bar`'s resolved services are passed as params
         baz:
             require: 'bazPackage'
             inject: ['foo', 'bar']
@@ -97,6 +98,32 @@ In the example of the database connection, you might do the following
 
 Gerenuk keeps track of services it's currently waiting on. This means that when asking for a service twice, before it's ready, will still give you the same object, once for both injections.
 
+### Injection Into Callbacks
+
+Sometimes you don't want to instantiate a service, but get a set of services injected into a callback. If you need to combine some services, and asynchronously - either through events or a callback - get a new service, you can inject directly into a callback. This gives you complete control of the instantiation of a service.
+
+    config = 
+        # Foo package
+        foo:
+            require: 'fooPackage'
+            params:
+                param1: 'bar'
+                param2: 'baz'
+            inject: ['foo.param1', 'foo.param2']
+        
+        # Bar has no require, but just gets `foo` injected into a callback
+        bar:
+            params:
+                param1: 'foo'
+                
+            injectCallback: ['foo', 'bar.param1']
+            
+            # The callback gets all injected services in order as the first parameters
+            # As the last param it gets a callback you call with the resolved service
+            callback: (foo, param, callback) ->
+                foo.someAsyncFuncThatCreatesBar (bar) ->
+                    callback bar
+
 ### EventEmitter Based Services
 
 Another frequently encountered pattern is that the resource you're working with emits an event when it's ready for duty. When you have to wait for such an event to happen you can listen to it in the callback. Note that in this case "foo" will be instantiated, by the container. The callback waits for it to emit "connected", then passes the instance of "foo" back. Any services that are injected with foo can then assume it's connected.
@@ -104,6 +131,12 @@ Another frequently encountered pattern is that the resource you're working with 
     config = 
         foo: 
             require: 'fooPackage'
+            
+            # Set up host/port config for foo
+            params:
+                host: 'hostname'
+                port: 12345
+            inject: ['foo.host', 'foo.port']
             
             # callback gets passed an instance of fooPackage
             callback: (foo, callback) ->
