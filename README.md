@@ -37,7 +37,7 @@ The container is initialized with a config. The config is a Javascript hash. In 
             instantiate: 'Bar'
             inject: ['foo']
         
-        # Instead of creating an instance the `bazFunction` will be called on bazPackage with `foo` and `bar` as params
+        # Instead of creating an instance the `bazFunction` will be called on bazPackage with the `foo` and `bar` services as params
         baz:
             require: 'bazPackage'
             inject: ['foo', 'bar']
@@ -81,6 +81,8 @@ You can also use `loadConfig` inside of a config item, replacing its contents wi
 
 One of the more challenging aspects of working with node is asynchronous instantiation of resources. You may, for example, need to connect to a database before you can perform other operations. Gerenuk attempts to aid you with this by supporting asynchronously resolvable services.
 
+### Callbacks In Services
+
 In the example of the database connection, you might do the following
 
     config = 
@@ -94,6 +96,21 @@ In the example of the database connection, you might do the following
                     callback connection
 
 Gerenuk keeps track of services it's currently waiting on. This means that when asking for a service twice, before it's ready, will still give you the same object, once for both injections.
+
+### EventEmitter Based Services
+
+Another frequently encountered pattern is that the resource you're working with emits an event when it's ready for duty. When you have to wait for such an event to happen you can listen to it in the callback. Note that in this case "foo" will be instantiated, by the container. The callback waits for it to emit "connected", then passes the instance of "foo" back. Any services that are injected with foo can then assume it's connected.
+
+    config = 
+        foo: 
+            require: 'fooPackage'
+            instantiate: true
+            
+            # callback gets passed an instance of fooPackage
+            callback: (foo, callback) ->
+                foo.on 'connected', () ->
+                    callback foo
+                do foo.connect
 
 ## Config Examples
 
@@ -216,12 +233,13 @@ When going even further down the road towards asynchrony, you can set up a `call
                 foo.doSomethingWithACallback (somethingUseful) ->
                     callback somethingUseful
 
-You can also hook into EventEmitters with this
+You can also hook into EventEmitters with this:
     
     config = 
         foo: 
             require: 'fooPackage'
-
+            instantiate: true
+            
             # callback gets passed an instance of fooPackage
             callback: (foo, callback) ->
                 foo.on 'connect', () ->
