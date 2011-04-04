@@ -104,7 +104,6 @@ Another frequently encountered pattern is that the resource you're working with 
     config = 
         foo: 
             require: 'fooPackage'
-            instantiate: true
             
             # callback gets passed an instance of fooPackage
             callback: (foo, callback) ->
