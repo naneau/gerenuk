@@ -113,7 +113,7 @@ class Container extends EventEmitter
             # No injection to resolve, that's the easy case :x
             return @handleAsync id, (@instantiate required, diConfig), diConfig, callback if not diConfig.inject?
             
-            # Injection have to be resolved
+            # Injection has to be resolved
             @resolveInjection diConfig.inject, stack, (services...) =>
                 @handleAsync id, (@instantiate required, diConfig, services...), diConfig, callback
                     
