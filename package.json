@@ -2,7 +2,7 @@
   "name": "gerenuk",
   "version": "0.0.2",
     
-  "description": "Friendly Dependency Injection Container",
+  "description": "Friendly dependency injection container",
   "keywords" : ["dependency injection", "dependencies", "injection", "dic"],
   
   "homepage": "https://github.com/naneau/gerenuk",
