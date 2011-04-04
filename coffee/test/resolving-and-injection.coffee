@@ -133,27 +133,3 @@ module.exports = testCase
             test.equal result, 'baz'
             do test.done
             
-    # Config loading
-    "Configs are loaded": (test) ->
-        test.expect 1
-        
-        @dic.get 'useConfig', (service) ->
-            test.deepEqual service, new (require 'test/lib/testPackage')
-            
-            do test.done
-    
-    # Configs in children
-    "Configs are loaded in children": (test) ->
-        test.expect 1
-
-        @dic.get 'useConfigInChild.configChild', (service) ->
-            test.deepEqual service, new (require 'test/lib/testPackage')
-
-            do test.done
-
-    # Circular dependencies
-    "Circular dependencies throw an exception": (test) ->
-        test.expect 1
-        test.throws () =>
-            @dic.get 'circularInjection1', (service) ->
-        do test.done

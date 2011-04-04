@@ -4,22 +4,35 @@ EventEmitter = (require 'events').EventEmitter
 # DI Container
 class Container extends EventEmitter
     
-    # Constructor, pass root config
-    constructor: (config) -> 
-        # Hash of items we're waiting on
+    # Constructor, pass (optional) config, or use loadConfig()
+    constructor: (config = {}) -> 
+        # Parse config
+        @config = @parseConfig config
+
+        # Hash of items we're waiting on, subscribe to "async.#{id}" for event when loaded
         @resolving = {}
-        
         # Hash of already resolved services
         @resolved = {}
-
         # Hash of required items, so we don't have to require() packages twice
         @required = {}
         
-        # Parse config
-        @config = @parseConfig config
-        
         undefined
+        
+    # Load config from file
+    loadConfig: (file) -> @addConfig require file
     
+    # Add a config object, will merge with existing config, but will only accept *new* root items
+    addConfig: (config) ->
+        # Parse it
+        parsedConfig = @parseConfig config
+        
+        for key, val of parsedConfig
+            # We don't even attempt to do a deep merge here, we only accept new root items
+            throw new Error "#{key} already exists" if @config[key]?
+            
+            # Add new item
+            @config[key] = val
+        
     # Parse config hash, recursively parsing all children
     parseConfig: (config) ->
         result = {}
