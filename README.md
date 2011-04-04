@@ -55,6 +55,28 @@ Using the container you can resolve services:
 
     dic.get 'foo', (service) -> ... your code ...
 
+## Putting You Configuration In Files
+
+When setting up your application, it is often useful to put your DI config into a configuration file (or files). Gerenuk supports this through the `loadConfig()` method. The config loaded through `loadConfig()` will be added to any existing configuration. It does *not* do a deep merge, however, and will throw an exception if you try to overwrite an existing config key.
+
+    dic = new Container
+    dic.loadConfig 'yourConfigFile'
+
+The contents of `yourConfigFile.coffee` would be like:
+
+    module.exports = 
+        foo: 'fooPackage'
+        bar: 
+            require 'barPackage'
+            instantiate: 'bar'
+        ...etc...
+
+You can also use `loadConfig` inside of a config item, replacing its contents with the loaded config. This has the disadvantage that the items loaded through this do not explicitly know the name of the node they are in, making it hard(er) to set up references.
+
+    dic = new Container 
+        foo: 
+            loadConfig: 'yourConfigFile'
+
 ## Asynchronous Operation
 
 One of the more challenging aspects of working with node is asynchronous instantiation of resources. You may, for example, need to connect to a database before you can perform other operations. Gerenuk attempts to aid you with this by supporting asynchronously resolvable services.
@@ -75,6 +97,8 @@ Gerenuk keeps track of services it's currently waiting on. This means that when 
 
 ## Config Examples
 
+### Packages
+
 When config is a string, the DIC will act like nothing more than wrapper around require(), the resulting object will be seen as the actual service.
 
     config =
@@ -85,7 +109,9 @@ Same as before, but more explicit
     config =
         foo:
             require: 'fooPackage'
-        
+
+### Instantiation
+
 With `instantiate: true` the container will attempt to create a new object directly from whatever `require` gave back, which is handy when you have a package directly exporting a single class: `module.exports = SomeClass`.
 
     config =
@@ -105,7 +131,9 @@ When you only want to instantiate a part of the `module.exports` hash, you can n
         bar:
             require: 'fooPackage'
             instantiate: 'bar'
-    
+
+### Injection
+
 The container will become really useful as soon as you start to inject services into other services. You can use `inject` to set up an array of services passed to the constructor. When `inject` is set, the DIC assumes that you want to instantiate.
 
     config =
@@ -141,6 +169,8 @@ Services can have children, in this case the id of the child is `foo.bar.baz`.
                             require: 'bazPackage'
                             instantiate: true
     
+### Configuration files
+
 It is possible to spread your DI config over multiple files. You can specify a package and use as a config for a service. When using `loadConfig` the entire node of the configuration you specify it for will be overwritten by the contents of the exports from the loaded file.
 
     config =    
@@ -154,7 +184,9 @@ Children can load configs just like their parents can:
             children:
                 bar:
                     loadConfig: 'barConfig'
-                
+                    
+### Injecting Into Package Methods
+                    
 When you don't want to instantiate, but rather call a method from a required package, you can use `call`. The function named in `call` is assumed to return the service directly (synchronously).
 
     config =    
@@ -170,6 +202,8 @@ Call can also use injection, so the following would work like `(require 'fooPack
             require: 'fooPackage'
             inject: ['bar', 'baz']
             call: 'fooFunction'
+
+### Callbacks And Asynchronous Operation
 
 When going even further down the road towards asynchrony, you can set up a `callback`, which gets called on an instance of an object. The callback gets passed both the object and a function you are required to call with the service once you're done setting it up.
 
