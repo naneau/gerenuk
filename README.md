@@ -47,7 +47,7 @@ The container is initialized with a config. The config is a Javascript hash. In 
 You can pass this configuration to Gerenuk's Container:
     
     # DI Container
-    Container = (require 'gerenuk').Container
+    Container = (require 'Gerenuk').Container
             
     # Container
     dic = new Container config 
@@ -56,41 +56,21 @@ Using the container you can resolve services:
 
     dic.get 'foo', (service) -> ... your code ...
 
-## Putting Your Configuration Into Files
-
-When setting up your application, it is often useful to put your DI config into a configuration file (or files). Gerenuk supports this through the `loadConfig()` method. The config loaded through `loadConfig()` will be added to any existing configuration. It does *not* do a deep merge, however, and will throw an exception if you try to overwrite an existing config key.
-
-    dic = new Container
-    dic.loadConfig 'yourConfigFile'
-
-The contents of `yourConfigFile.coffee` would be like:
-
-    module.exports = 
-        foo: 'fooPackage'
-        bar: 
-            require 'barPackage'
-            instantiate: 'bar'
-        ...etc...
-
-You can also use `loadConfig` inside of a config item, replacing its contents with the loaded config. This has the disadvantage that the items loaded through this do not explicitly know the name of the node they are in, making it hard(er) to set up references.
-
-    dic = new Container 
-        foo: 
-            loadConfig: 'yourConfigFile'
-
 ## Asynchronous Operation
 
 One of the more challenging aspects of working with node is asynchronous instantiation of resources. You may, for example, need to connect to a database before you can perform other operations. Gerenuk attempts to aid you with this by supporting asynchronously resolvable services.
 
 ### Callbacks In Services
 
-In the example of the database connection, you might do the following
+It is possible to set up a `callback` for an item. This is a function you define, that is passed both an instance of the service and a callback which you are supposed to call with the service once you have it ready. Gerenuk will wait patiently for you to do this, and can inject the result into other services. You can build chains of asynchronously created services this way. 
+
+In the example of the database connection, you might do the following.
 
     config = 
         connection: 
             require: 'dbPackage'
         
-            # Callback on the instance of dbPackage
+            # Callback on an instance of dbPackage
             callback: (db, callback) ->
                 db.connect (error, connection) ->
                     throw "Error!" if error
@@ -100,7 +80,7 @@ Gerenuk keeps track of services it's currently waiting on. This means that when 
 
 ### Injection Into Callbacks
 
-Sometimes you don't want to instantiate a service, but get a set of services injected into a callback. If you need to combine some services, and asynchronously - either through events or a callback - get a new service, you can inject directly into a callback. This gives you complete control of the instantiation of a service.
+Sometimes you don't want to instantiate a service, but get a set of services injected into a function. If you need to combine some services, and asynchronously - either through events or a callback - get a new service, Gerenuk can inject directly into the callback. This gives you complete control over the instantiation of a service.
 
     config = 
         # Foo package
@@ -124,25 +104,27 @@ Sometimes you don't want to instantiate a service, but get a set of services inj
                 foo.someAsyncFuncThatCreatesBar (bar) ->
                     callback bar
 
-### EventEmitter Based Services
+## Putting Your DI Configuration Into Files
 
-Another frequently encountered pattern is that the resource you're working with emits an event when it's ready for duty. When you have to wait for such an event to happen you can listen to it in the callback. Note that in this case "foo" will be instantiated, by the container. The callback waits for it to emit "connected", then passes the instance of "foo" back. Any services that are injected with foo can then assume it's connected.
+When setting up your application, it is often useful to put your DI config into a configuration file (or files). Gerenuk supports this through the `loadConfig()` method. The config loaded through `loadConfig()` will be added to any existing configuration. It does *not* do a deep merge, however, and will throw an exception if you try to overwrite an existing config key.
 
-    config = 
+    dic = new Container
+    dic.loadConfig 'yourConfigFile'
+
+The contents of `yourConfigFile.coffee` would be like:
+
+    module.exports = 
+        foo: 'fooPackage'
+        bar: 
+            require 'barPackage'
+            instantiate: 'bar'
+        ...etc...
+
+You can also use `loadConfig` inside of a config item, replacing its contents with the loaded config. This has the disadvantage that the items loaded through this do not explicitly know the name of the node they are in, making it hard(er) to set up references.
+
+    dic = new Container 
         foo: 
-            require: 'fooPackage'
-            
-            # Set up host/port config for foo
-            params:
-                host: 'hostname'
-                port: 12345
-            inject: ['foo.host', 'foo.port']
-            
-            # callback gets passed an instance of fooPackage
-            callback: (foo, callback) ->
-                foo.on 'connected', () ->
-                    callback foo
-                do foo.connect
+            loadConfig: 'yourConfigFile'
 
 ## Config Examples
 
@@ -265,15 +247,20 @@ When going even further down the road towards asynchrony, you can set up a `call
                 foo.doSomethingWithACallback (somethingUseful) ->
                     callback somethingUseful
 
-You can also hook into EventEmitters with this:
-    
+Another frequently encountered pattern is that the resource you're working with emits an event when it's ready for duty. When you have to wait for such an event to happen you can listen to it in the callback. Note that in this case "foo" will be instantiated, by the container. The callback waits for it to emit "connected", then passes the instance of "foo" back. Any services that are injected with foo can then assume it's connected.
+
     config = 
         foo: 
             require: 'fooPackage'
-            instantiate: true
-            
+
+            # Set up host/port config for foo
+            params:
+                host: 'hostname'
+                port: 12345
+            inject: ['foo.host', 'foo.port']
+
             # callback gets passed an instance of fooPackage
             callback: (foo, callback) ->
-                foo.on 'connect', () ->
+                foo.on 'connected', () ->
                     callback foo
                 do foo.connect
